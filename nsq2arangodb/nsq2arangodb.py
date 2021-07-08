@@ -36,6 +36,8 @@ class NsqConfig:
 class Nsq2ArangoDB:
     def __init__(self, logger: logging.Logger, arangodb_config: ArangoDBConfig, nsq_config: NsqConfig):
         self._logger = logger
+        self._arangodb_config = arangodb_config
+        self._nsq_config = nsq_config
         connection = Connection(
             arangoURL=arangodb_config.url,
             username=arangodb_config.username,
@@ -52,7 +54,10 @@ class Nsq2ArangoDB:
 
     def _handler(self, message: nsq.Message):
         decoded_body = message.body.decode('utf-8')
-        self._logger.debug(F'Transporting message with body of length={len(decoded_body)}')
+        self._logger.debug(
+            F'Transporting message with body of length={len(decoded_body)} '
+            F'from "{self._nsq_config.topic}" to "{self._arangodb_config.collection}"'
+        )
         try:
             decoded_json = json.loads(decoded_body)
         except json.decoder.JSONDecodeError as e:
