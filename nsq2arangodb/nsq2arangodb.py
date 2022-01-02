@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 import nsq
 from pyArango.connection import Connection
+from pyArango.theExceptions import CreationError
 
 __service__ = 'nsq2arangodb'
 __version__ = '1.0.0'
@@ -33,11 +34,23 @@ class NsqConfig:
     channel: str
 
 
+@dataclass
+class Nsq2ArangoConfig:
+    pass_constraint_violations: bool
+
+
 class Nsq2ArangoDB:
-    def __init__(self, logger: logging.Logger, arangodb_config: ArangoDBConfig, nsq_config: NsqConfig):
+    def __init__(
+            self,
+            logger: logging.Logger,
+            arangodb_config: ArangoDBConfig,
+            nsq_config: NsqConfig,
+            config: Nsq2ArangoConfig,
+    ):
         self._logger = logger
         self._arangodb_config = arangodb_config
         self._nsq_config = nsq_config
+        self._config = config
         connection = Connection(
             arangoURL=arangodb_config.url,
             username=arangodb_config.username,
@@ -63,7 +76,16 @@ class Nsq2ArangoDB:
         except json.decoder.JSONDecodeError as e:
             self._logger.exception(e)
             return True  # do not requeue decoding errors
-        self._insert_into_arangodb(decoded_json)
+        try:
+            self._insert_into_arangodb(decoded_json)
+        except CreationError as e:
+            if 'unique constraint violated' in e.message:
+                if self._config.pass_constraint_violations:
+                    return True
+                else:
+                    return False
+            raise e
+
         return True
 
     def _insert_into_arangodb(self, json_doc):
@@ -90,6 +112,9 @@ def main(args: argparse.Namespace):
             port=args.nsq_port,
             topic=args.nsq_topic,
             channel=args.nsq_channel_name,
+        ),
+        Nsq2ArangoConfig(
+            pass_constraint_violations=args.pass_constraint_violations,
         )
     )
 
@@ -104,6 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--nsq-address', default=os.environ.get('NSQ_ADDRESS', '127.0.0.1'))
     parser.add_argument('--nsq-port', default=os.environ.get('NSQ_PORT', 4150), type=int)
     parser.add_argument('--nsq-channel-name', default=os.environ.get('NSQ_CHANNEL_NAME', __service__))
+    parser.add_argument('--pass-constraint-violations', action='store_true')
     parser.add_argument('nsq_topic')
     parser.add_argument('arangodb_collection')
     main(parser.parse_args())
