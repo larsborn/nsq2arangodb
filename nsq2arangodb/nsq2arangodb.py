@@ -32,6 +32,7 @@ class NsqConfig:
     port: int
     topic: str
     channel: str
+    max_in_flight: int
 
 
 @dataclass
@@ -62,6 +63,7 @@ class Nsq2ArangoDB:
             nsqd_tcp_addresses=[F'{nsq_config.address}:{nsq_config.port}'],
             topic=nsq_config.topic,
             channel=nsq_config.channel,
+            max_in_flight=nsq_config.max_in_flight
         )
         nsq.run()
 
@@ -112,6 +114,7 @@ def main(args: argparse.Namespace):
             port=args.nsq_port,
             topic=args.nsq_topic,
             channel=args.nsq_channel_name,
+            max_in_flight=args.nsq_max_in_flight,
         ),
         Nsq2ArangoConfig(
             pass_constraint_violations=args.pass_constraint_violations,
@@ -129,6 +132,7 @@ if __name__ == '__main__':
     parser.add_argument('--nsq-address', default=os.environ.get('NSQ_ADDRESS', '127.0.0.1'))
     parser.add_argument('--nsq-port', default=os.environ.get('NSQ_PORT', 4150), type=int)
     parser.add_argument('--nsq-channel-name', default=os.environ.get('NSQ_CHANNEL_NAME', __service__))
+    parser.add_argument('--nsq-max-in-flight', default=os.environ.get('NSQ_MAX_IN_FLIGHT', '1'), type=int)
     parser.add_argument('--pass-constraint-violations', action='store_true')
     parser.add_argument('nsq_topic')
     parser.add_argument('arangodb_collection')
