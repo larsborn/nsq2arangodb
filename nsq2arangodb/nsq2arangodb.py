@@ -84,9 +84,7 @@ class Nsq2ArangoDB:
             if 'unique constraint violated' in e.message:
                 if self._config.pass_constraint_violations:
                     return True
-                else:
-                    return False
-            raise e
+            self._logger.exception(e)
 
         return True
 
@@ -96,7 +94,7 @@ class Nsq2ArangoDB:
 
 def main(args: argparse.Namespace):
     logger = logging.getLogger(__service__)
-    logging.basicConfig()
+    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
     logger.info(F'Starting {__service__}/{__version__}')
     logger.debug(F'Arguments: {args}')

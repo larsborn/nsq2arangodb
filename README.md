@@ -11,7 +11,7 @@ pip install nsq2arangodb
 
 ## Usage
 
-Successfully tested with `pyArango==1.3.5` and `pynsq==0.9.0`.
+Successfully tested with `pyArango==2.0.1` and `pynsq==0.9.1`.
 
 ```bash
 $ python nsq2arangodb/nsq2arangodb.py --help
@@ -83,8 +83,9 @@ n2a.Nsq2ArangoDB(
 
 ## Limitations
 
-* No concurrency
-* JSON decoding errors are just logged as exceptions and not re-queued
+* No concurrency (but in-flight support)
+* JSON decoding errors are just logged as exceptions and not re-queued, potential solution here is to push them to
+  another configurable queue 
 
 ## Development
 
