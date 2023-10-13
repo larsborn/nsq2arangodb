@@ -85,10 +85,17 @@ n2a.Nsq2ArangoDB(
 
 * No concurrency (but in-flight support)
 * JSON decoding errors are just logged as exceptions and not re-queued, potential solution here is to push them to
-  another configurable queue 
+  another configurable queue
 
 ## Development
 
 ```bash
 pip install -r requirements.txt
 ```
+
+## Changelog
+
+| Version | Release Date | Change                                                        |
+|---------|--------------|---------------------------------------------------------------|
+| 1.0.0   | 2021-07-08   | Initial Release                                               |
+| 1.0.0   | 2022-05-07   | In-flight count configurable, constraint errors are permanent |
