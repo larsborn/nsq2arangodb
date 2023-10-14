@@ -21,6 +21,10 @@ setuptools.setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
     ],
+    install_requires=[
+        'pyArango',
+        'pynsq',
+    ],
     packages=setuptools.find_packages(),
     python_requires=">=3.6",
 )

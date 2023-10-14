@@ -8,6 +8,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
+from typing import Optional
 
 import nsq
 from pyArango.connection import Connection
@@ -24,6 +25,16 @@ class ArangoDBConfig:
     password: str
     database: str
     collection: str
+    client_certificate_path: Optional[str]
+    client_key_path: Optional[str]
+
+    @property
+    def cert(self):
+        if not self.client_certificate_path and not self.client_key_path:
+            return None
+        if not (self.client_certificate_path and self.client_key_path):
+            raise ValueError('You need to specify the client certificate *and* the key path')
+        return self.client_certificate_path, self.client_key_path
 
 
 @dataclass
@@ -55,7 +66,8 @@ class Nsq2ArangoDB:
         connection = Connection(
             arangoURL=arangodb_config.url,
             username=arangodb_config.username,
-            password=arangodb_config.password
+            password=arangodb_config.password,
+            cert=arangodb_config.cert,
         )
         self._collection = connection[arangodb_config.database][arangodb_config.collection]
         nsq.Reader(
@@ -106,6 +118,8 @@ def main(args: argparse.Namespace):
             password=args.arangodb_password,
             database=args.arangodb_database,
             collection=args.arangodb_collection,
+            client_certificate_path=args.arangodb_client_certificate_path,
+            client_key_path=args.arangodb_client_key_path,
         ),
         NsqConfig(
             address=args.nsq_address,
@@ -127,6 +141,11 @@ if __name__ == '__main__':
     parser.add_argument('--arangodb-database', default=os.environ.get('ARANGODB_DATABASE'))
     parser.add_argument('--arangodb-username', default=os.environ.get('ARANGODB_USERNAME'))
     parser.add_argument('--arangodb-password', default=os.environ.get('ARANGODB_PASSWORD'))
+    parser.add_argument(
+        '--arangodb-client-certificate-path',
+        default=os.environ.get('ARANGODB_CLIENT_CERTIFICATE_PATH'),
+    )
+    parser.add_argument('--arangodb-client-key-path', default=os.environ.get('ARANGODB_CLIENT_KEY_PATH'))
     parser.add_argument('--nsq-address', default=os.environ.get('NSQ_ADDRESS', '127.0.0.1'))
     parser.add_argument('--nsq-port', default=os.environ.get('NSQ_PORT', 4150), type=int)
     parser.add_argument('--nsq-channel-name', default=os.environ.get('NSQ_CHANNEL_NAME', __service__))

@@ -9,6 +9,14 @@ is for sure possible to transport JSON. This package implements insertion of NSQ
 pip install nsq2arangodb
 ```
 
+It is recommended to do all this within a virtual enviornment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+```
+
 ## Usage
 
 Successfully tested with `pyArango==2.0.1` and `pynsq==0.9.1`.
@@ -89,8 +97,11 @@ n2a.Nsq2ArangoDB(
 
 ## Development
 
+After switching into an appropriate virtual env, change to the root directory of this package and install it in
+editable mode:
+
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ## Changelog
@@ -99,3 +110,4 @@ pip install -r requirements.txt
 |---------|--------------|---------------------------------------------------------------|
 | 1.0.0   | 2021-07-08   | Initial Release                                               |
 | 1.0.0   | 2022-05-07   | In-flight count configurable, constraint errors are permanent |
+| 1.1.0   | 2023-10-14   | Adds dependencies, adds support for client-side certificates  |
